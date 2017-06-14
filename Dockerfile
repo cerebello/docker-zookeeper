@@ -40,6 +40,7 @@ ARG ZK_GROUP=zookeeper
 ARG ZK_UID=5000
 ARG ZK_GID=5000
 ENV ZK_USER=${ZK_USER}
+ENV ZK_GROUP=${ZK_GROUP}
 RUN groupadd --gid=${ZK_GID} ${ZK_GROUP}
 RUN useradd --uid=${ZK_UID} --gid=${ZK_GID} --no-create-home ${ZK_USER}
 
