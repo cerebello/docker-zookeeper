@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM openjdk:8-jre-alpine
 MAINTAINER Robson Júnior <bsao@cerebello.co> (@bsao)
 
 ##########################################
@@ -41,8 +41,8 @@ ARG ZK_UID=5000
 ARG ZK_GID=5000
 ENV ZK_USER=${ZK_USER}
 ENV ZK_GROUP=${ZK_GROUP}
-RUN groupadd --gid=${ZK_GID} ${ZK_GROUP}
-RUN useradd --uid=${ZK_UID} --gid=${ZK_GID} --no-create-home ${ZK_USER}
+RUN addgroup -g ${ZK_GID} -S ${ZK_GROUP}
+RUN adduser -u ${ZK_UID} -D -S -G ${ZK_USER} ${ZK_GROUP}
 
 ##########################################
 ### DIRECTORIES
@@ -51,22 +51,9 @@ RUN mkdir -p ${ZK_HOME}
 RUN mkdir -p ${ZK_DATA_DIR}
 
 ##########################################
-### UPDATE DIST AND INSTALL DEPENDENCIES
-### INSTALL JAVA
+### DNS UTILS
 ##########################################
-RUN \
-  echo oracle-java${JAVA_MAJOR_VERSION}-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | \
-    tee /etc/apt/sources.list.d/webupd8team-java.list && \
-  echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | \
-    tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
-  apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y oracle-java${JAVA_MAJOR_VERSION}-installer oracle-java${JAVA_MAJOR_VERSION}-set-default wget bash dnsutils sudo && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk${JAVA_MAJOR_VERSION}-installer
-ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_MAJOR_VERSION}-oracle
+RUN apk add --update --no-cache bash tar bind-tools shadow
 
 ##########################################
 ### DOWNLOAD AND INSTALL ZOOKEEPER
