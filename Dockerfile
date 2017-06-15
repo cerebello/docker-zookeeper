@@ -1,10 +1,9 @@
-FROM debian:jessie
+FROM openjdk:8-jre-alpine
 MAINTAINER Robson Júnior <bsao@cerebello.co> (@bsao)
 
 ##########################################
 ### ARGS AND ENVS
 ##########################################
-ARG JAVA_MAJOR_VERSION=8
 ARG ZK_MIRROR=http://artfiles.org/apache.org/zookeeper/stable
 ARG ZK_VERSION=3.4.10
 ENV ZK_VERSION=${ZK_VERSION}
@@ -41,43 +40,33 @@ ARG ZK_UID=5000
 ARG ZK_GID=5000
 ENV ZK_USER=${ZK_USER}
 ENV ZK_GROUP=${ZK_GROUP}
-RUN groupadd --gid=${ZK_GID} ${ZK_GROUP}
-RUN useradd --uid=${ZK_UID} --gid=${ZK_GID} --no-create-home ${ZK_USER}
+ARG ZK_UID=${ZK_UID}
+ARG ZK_GID=${ZK_GID}
+RUN addgroup -g ${ZK_GID} -S ${ZK_GROUP} && \
+    adduser -u ${ZK_UID} -D -S -G ${ZK_USER} ${ZK_GROUP}
 
 ##########################################
 ### DIRECTORIES
 ##########################################
-RUN mkdir -p ${ZK_HOME}
-RUN mkdir -p ${ZK_DATA_DIR}
+RUN mkdir -p ${ZK_HOME} && \
+    mkdir -p ${ZK_DATA_DIR}
 
 ##########################################
-### UPDATE DIST AND INSTALL DEPENDENCIES
-### INSTALL JAVA
+### DNS UTILS
 ##########################################
-RUN \
-  echo oracle-java${JAVA_MAJOR_VERSION}-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections && \
-  echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | \
-    tee /etc/apt/sources.list.d/webupd8team-java.list && \
-  echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" | \
-    tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
-  apt-get update && \
-  apt-get -y upgrade && \
-  apt-get install -y oracle-java${JAVA_MAJOR_VERSION}-installer oracle-java${JAVA_MAJOR_VERSION}-set-default wget bash dnsutils sudo && \
-  rm -rf /var/lib/apt/lists/* && \
-  rm -rf /var/cache/oracle-jdk${JAVA_MAJOR_VERSION}-installer
-ENV JAVA_HOME /usr/lib/jvm/java-${JAVA_MAJOR_VERSION}-oracle
+RUN apk add --update --no-cache  \
+    bash tar bind-tools shadow
 
 ##########################################
 ### DOWNLOAD AND INSTALL ZOOKEEPER
 ##########################################
-RUN wget ${ZK_MIRROR}/zookeeper-${ZK_VERSION}.tar.gz \
-  && tar -xvf zookeeper-${ZK_VERSION}.tar.gz -C ${ZK_HOME} --strip=1 \
-  && rm -rf zookeeper-${ZK_VERSION}.tar.gz
-RUN chown -R ${ZK_USER}:${ZK_GROUP} ${ZK_DATA_DIR}
-RUN chown -R ${ZK_USER}:${ZK_GROUP} ${ZK_HOME}
-RUN chmod -R g+rwx ${ZK_DATA_DIR}
-RUN chmod -R g+rwx ${ZK_HOME}
+RUN wget ${ZK_MIRROR}/zookeeper-${ZK_VERSION}.tar.gz && \
+    tar -xvf zookeeper-${ZK_VERSION}.tar.gz -C ${ZK_HOME} --strip=1  && \
+    rm -rf zookeeper-${ZK_VERSION}.tar.gz && \
+    chown -R ${ZK_USER}:${ZK_GROUP} ${ZK_DATA_DIR} && \
+    chown -R ${ZK_USER}:${ZK_GROUP} ${ZK_HOME} && \
+    chmod -R g+rwx ${ZK_DATA_DIR} && \
+    chmod -R g+rwx ${ZK_HOME}
 
 ##########################################
 ### START SCRIPT
@@ -88,9 +77,7 @@ RUN chmod +x /opt/start-zookeeper.sh
 ##########################################
 ### PORTS
 ##########################################
-EXPOSE 2181
-EXPOSE 2888
-EXPOSE 3888
+EXPOSE 2181 2888 3888
 
 ##########################################
 ### ENTRYPOINT

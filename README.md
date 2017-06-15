@@ -1,6 +1,6 @@
 # About:
 
-[Docker](http://www.docker.com/) image based on [debian:jessie](https://hub.docker.com/_/debian/)
+[Docker](http://www.docker.com/) image based on [openjdk:8-jre-alpine](https://hub.docker.com/_/openjdk/)
 
 [![Docker Stars](https://img.shields.io/docker/stars/cerebello/zookeeper.svg)](https://hub.docker.com/r/cerebello/zookeeper/) [![Docker Pulls](https://img.shields.io/docker/pulls/cerebello/zookeeper.svg)](https://hub.docker.com/r/cerebello/zookeeper/) [![](https://images.microbadger.com/badges/image/cerebello/zookeeper.svg)](https://microbadger.com/images/cerebello/zookeeper)
 
